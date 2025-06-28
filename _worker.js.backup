@@ -1,4 +1,4 @@
-//nat64×Ô¶¯Ìî³äproxyip£¬ÎŞĞèÇÒ²»Ö§³ÖproxyipÉèÖÃ
+//nat64è‡ªåŠ¨å¡«å……proxyipï¼Œæ— éœ€ä¸”ä¸æ”¯æŒproxyipè®¾ç½®
 import { connect } from "cloudflare:sockets";
 const WS_READY_STATE_OPEN = 1;
 let userID = "112c4a52-ea15-4cbb-b86b-abe8f026d462";
@@ -231,7 +231,7 @@ async function handle\u0076\u006c\u0065\u0073\u0073WebSocket(request) {
           udpStreamWrite(rawClientData);
           return;
         } else {
-          throw new Error('UDP´úÀí½öÖ§³ÖDNS(¶Ë¿Ú53)');
+          throw new Error('UDPä»£ç†ä»…æ”¯æŒDNS(ç«¯å£53)');
         }
       }
 
@@ -250,17 +250,17 @@ async function handle\u0076\u006c\u0065\u0073\u0073WebSocket(request) {
       function convertToNAT64IPv6(ipv4Address) {
         const parts = ipv4Address.split('.');
         if (parts.length !== 4) {
-          throw new Error('ÎŞĞ§µÄIPv4µØÖ·');
+          throw new Error('æ— æ•ˆçš„IPv4åœ°å€');
         }
         
         const hex = parts.map(part => {
           const num = parseInt(part, 10);
           if (num < 0 || num > 255) {
-            throw new Error('ÎŞĞ§µÄIPv4µØÖ·¶Î');
+            throw new Error('æ— æ•ˆçš„IPv4åœ°å€æ®µ');
           }
           return num.toString(16).padStart(2, '0');
         });
-        const prefixes = ['2001:67c:2960:6464::']; //,'2a01:4f9:c010:3f02:64::'
+        const prefixes = ['2602:fc59:b0:64::','2001:67c:2960:6464::']; //,'2a01:4f9:c010:3f02:64::'
         const chosenPrefix = prefixes[Math.floor(Math.random() * prefixes.length)];
         return `[${chosenPrefix}${hex[0]}${hex[1]}:${hex[2]}${hex[3]}]`;
       }
@@ -281,16 +281,16 @@ async function handle\u0076\u006c\u0065\u0073\u0073WebSocket(request) {
               return convertToNAT64IPv6(ipv4Address);
             }
           }
-          throw new Error('ÎŞ·¨½âÎöÓòÃûµÄIPv4µØÖ·');
+          throw new Error('æ— æ³•è§£æåŸŸåçš„IPv4åœ°å€');
         } catch (err) {
-          throw new Error(`DNS½âÎöÊ§°Ü: ${err.message}`);
+          throw new Error(`DNSè§£æå¤±è´¥: ${err.message}`);
         }
       }
 
       async function retry() {
         try {
           const proxyIP = await getIPv6ProxyAddress(result.addressRemote);
-          console.log(`³¢ÊÔÍ¨¹ıNAT64 IPv6µØÖ· ${proxyIP} Á¬½Ó...`);
+          console.log(`å°è¯•é€šè¿‡NAT64 IPv6åœ°å€ ${proxyIP} è¿æ¥...`);
           const tcpSocket = await connect({
             hostname: proxyIP,
             port: result.portRemote
@@ -301,17 +301,17 @@ async function handle\u0076\u006c\u0065\u0073\u0073WebSocket(request) {
           writer.releaseLock();
 
           tcpSocket.closed.catch(error => {
-            console.error('NAT64 IPv6Á¬½Ó¹Ø±Õ´íÎó:', error);
+            console.error('NAT64 IPv6è¿æ¥å…³é—­é”™è¯¯:', error);
           }).finally(() => {
             if (serverWS.readyState === WS_READY_STATE_OPEN) {
-              serverWS.close(1000, 'Á¬½ÓÒÑ¹Ø±Õ');
+              serverWS.close(1000, 'è¿æ¥å·²å…³é—­');
             }
           });
           
           pipeRemoteToWebSocket(tcpSocket, serverWS, \u0076\u006c\u0065\u0073\u0073RespHeader, null);
         } catch (err) {
-          console.error('NAT64 IPv6Á¬½ÓÊ§°Ü:', err);
-          serverWS.close(1011, 'NAT64 IPv6Á¬½ÓÊ§°Ü: ' + err.message);
+          console.error('NAT64 IPv6è¿æ¥å¤±è´¥:', err);
+          serverWS.close(1011, 'NAT64 IPv6è¿æ¥å¤±è´¥: ' + err.message);
         }
       }
 
@@ -319,8 +319,8 @@ async function handle\u0076\u006c\u0065\u0073\u0073WebSocket(request) {
         const tcpSocket = await connectAndWrite(result.addressRemote, result.portRemote);
         pipeRemoteToWebSocket(tcpSocket, serverWS, \u0076\u006c\u0065\u0073\u0073RespHeader, retry);
       } catch (err) {
-        console.error('Á¬½ÓÊ§°Ü:', err);
-        serverWS.close(1011, 'Á¬½ÓÊ§°Ü');
+        console.error('è¿æ¥å¤±è´¥:', err);
+        serverWS.close(1011, 'è¿æ¥å¤±è´¥');
       }
     },
     close() {
@@ -329,9 +329,9 @@ async function handle\u0076\u006c\u0065\u0073\u0073WebSocket(request) {
       }
     }
   })).catch(err => {
-    console.error('WebSocket ´íÎó:', err);
+    console.error('WebSocket é”™è¯¯:', err);
     closeSocket(remoteSocket);
-    serverWS.close(1011, 'ÄÚ²¿´íÎó');
+    serverWS.close(1011, 'å†…éƒ¨é”™è¯¯');
   });
 
   return new Response(null, {
@@ -369,7 +369,7 @@ function createWebSocketReadableStream(ws, earlyDataHeader) {
 
 function parse\u0076\u006c\u0065\u0073\u0073Header(buffer, userID) {
   if (buffer.byteLength < 24) {
-    return { hasError: true, message: 'ÎŞĞ§µÄÍ·²¿³¤¶È' };
+    return { hasError: true, message: 'æ— æ•ˆçš„å¤´éƒ¨é•¿åº¦' };
   }
   
   const view = new DataView(buffer);
@@ -377,7 +377,7 @@ function parse\u0076\u006c\u0065\u0073\u0073Header(buffer, userID) {
   
   const uuid = formatUUID(new Uint8Array(buffer.slice(1, 17)));
   if (uuid !== userID) {
-    return { hasError: true, message: 'ÎŞĞ§µÄÓÃ»§' };
+    return { hasError: true, message: 'æ— æ•ˆçš„ç”¨æˆ·' };
   }
   
   const optionsLength = view.getUint8(17);
@@ -390,7 +390,7 @@ function parse\u0076\u006c\u0065\u0073\u0073Header(buffer, userID) {
 
     isUDP = true;
   } else {
-    return { hasError: true, message: '²»Ö§³ÖµÄÃüÁî£¬½öÖ§³ÖTCP(01)ºÍUDP(02)' };
+    return { hasError: true, message: 'ä¸æ”¯æŒçš„å‘½ä»¤ï¼Œä»…æ”¯æŒTCP(01)å’ŒUDP(02)' };
   }
   
   let offset = 19 + optionsLength;
@@ -406,7 +406,7 @@ function parse\u0076\u006c\u0065\u0073\u0073Header(buffer, userID) {
       offset += 4;
       break;
       
-    case 2: // ÓòÃû
+    case 2: // åŸŸå
       const domainLength = view.getUint8(offset++);
       address = new TextDecoder().decode(buffer.slice(offset, offset + domainLength));
       offset += domainLength;
@@ -422,7 +422,7 @@ function parse\u0076\u006c\u0065\u0073\u0073Header(buffer, userID) {
       break;
       
     default:
-      return { hasError: true, message: '²»Ö§³ÖµÄµØÖ·ÀàĞÍ' };
+      return { hasError: true, message: 'ä¸æ”¯æŒçš„åœ°å€ç±»å‹' };
   }
   
   return {
@@ -460,17 +460,17 @@ function pipeRemoteToWebSocket(remoteSocket, ws, \u0076\u006c\u0065\u0073\u0073H
         return;
       }
       if (ws.readyState === WS_READY_STATE_OPEN) {
-        ws.close(1000, 'Õı³£¹Ø±Õ');
+        ws.close(1000, 'æ­£å¸¸å…³é—­');
       }
     },
     abort() {
       closeSocket(remoteSocket);
     }
   })).catch(err => {
-    console.error('Êı¾İ×ª·¢´íÎó:', err);
+    console.error('æ•°æ®è½¬å‘é”™è¯¯:', err);
     closeSocket(remoteSocket);
     if (ws.readyState === WS_READY_STATE_OPEN) {
-      ws.close(1011, 'Êı¾İ´«Êä´íÎó');
+      ws.close(1011, 'æ•°æ®ä¼ è¾“é”™è¯¯');
     }
   });
 }
@@ -524,7 +524,7 @@ async function handleUDPOutBound(webSocket, \u0076\u006c\u0065\u0073\u0073Respon
       const udpSizeBuffer = new Uint8Array([(udpSize >> 8) & 0xff, udpSize & 0xff]);
       
       if (webSocket.readyState === WS_READY_STATE_OPEN) {
-        console.log(`DNS²éÑ¯³É¹¦£¬DNSÏûÏ¢³¤¶ÈÎª ${udpSize}`);
+        console.log(`DNSæŸ¥è¯¢æˆåŠŸï¼ŒDNSæ¶ˆæ¯é•¿åº¦ä¸º ${udpSize}`);
         if (is\u0076\u006c\u0065\u0073\u0073HeaderSent) {
           webSocket.send(await new Blob([udpSizeBuffer, dnsQueryResult]).arrayBuffer());
         } else {
@@ -534,7 +534,7 @@ async function handleUDPOutBound(webSocket, \u0076\u006c\u0065\u0073\u0073Respon
       }
     }
   })).catch((error) => {
-    console.error('DNS UDP´¦Àí´íÎó:', error);
+    console.error('DNS UDPå¤„ç†é”™è¯¯:', error);
   });
 
   const writer = transformStream.writable.getWriter();
@@ -554,7 +554,7 @@ async function handleUDPOutBound(webSocket, \u0076\u006c\u0065\u0073\u0073Respon
 function get\u0076\u006c\u0065\u0073\u0073Config(userID, hostName) {
   const w\u0076\u006c\u0065\u0073\u0073ws = `\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${CDNIP}:8880?encryption=none&security=none&type=ws&host=${hostName}&path=%2F%3Fed%3D2560#${hostName}`;
   const p\u0076\u006c\u0065\u0073\u0073wstls = `\u0076\u006c\u0065\u0073\u0073\u003A//${userID}\u0040${CDNIP}:8443?encryption=none&security=tls&type=ws&host=${hostName}&sni=${hostName}&fp=random&path=%2F%3Fed%3D2560#${hostName}`;
-  const note = `ğ®¸ç²©¿ÍµØÖ·£ºhttps://ygkkk.blogspot.com\nğ®¸çYouTubeÆµµÀ£ºhttps://www.youtube.com/@ygkkk\nğ®¸çTGµç±¨Èº×é£ºhttps://t.me/ygkkktg\nğ®¸çTGµç±¨ÆµµÀ£ºhttps://t.me/ygkkktgpd\n\nProxyIPÊ¹ÓÃnat64×Ô¶¯Éú³É£¬ÎŞĞèÉèÖÃ`;
+  const note = `ç”¬å“¥åšå®¢åœ°å€ï¼šhttps://ygkkk.blogspot.com\nç”¬å“¥YouTubeé¢‘é“ï¼šhttps://www.youtube.com/@ygkkk\nç”¬å“¥TGç”µæŠ¥ç¾¤ç»„ï¼šhttps://t.me/ygkkktg\nç”¬å“¥TGç”µæŠ¥é¢‘é“ï¼šhttps://t.me/ygkkktgpd\n\nProxyIPä½¿ç”¨nat64è‡ªåŠ¨ç”Ÿæˆï¼Œæ— éœ€è®¾ç½®`;
   const ty = `https://${hostName}/${userID}/ty`
   const cl = `https://${hostName}/${userID}/cl`
   const sb = `https://${hostName}/${userID}/sb`
@@ -593,7 +593,7 @@ function copyToClipboard(text) {
   input.select();
   document.execCommand('Copy');
   document.body.removeChild(input);
-  alert('ÒÑ¸´ÖÆµ½¼ôÌù°å');
+  alert('å·²å¤åˆ¶åˆ°å‰ªè´´æ¿');
 }
 </script>
 `;
@@ -606,7 +606,7 @@ ${displayHtml}
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>Cloudflare-workers/pages-\u0076\u006c\u0065\u0073\u0073´úÀí½Å±¾ V25.5.27</h1>
+            <h1>Cloudflare-workers/pages-\u0076\u006c\u0065\u0073\u0073ä»£ç†è„šæœ¬ V25.5.27</h1>
 	    <hr>
             <p>${noteshow}</p>
             <hr>
@@ -614,84 +614,84 @@ ${displayHtml}
 	    <hr>
             <br>
             <br>
-            <h3>1£ºCF-workers-\u0076\u006c\u0065\u0073\u0073+ws½Úµã</h3>
+            <h3>1ï¼šCF-workers-\u0076\u006c\u0065\u0073\u0073+wsèŠ‚ç‚¹</h3>
 			<table class="table">
 				<thead>
 					<tr>
-						<th>½ÚµãÌØÉ«£º</th>
-						<th>µ¥½ÚµãÁ´½ÓÈçÏÂ£º</th>
+						<th>èŠ‚ç‚¹ç‰¹è‰²ï¼š</th>
+						<th>å•èŠ‚ç‚¹é“¾æ¥å¦‚ä¸‹ï¼š</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr>
-						<td class="limited-width">¹Ø±ÕÁËTLS¼ÓÃÜ£¬ÎŞÊÓÓòÃû×è¶Ï</td>
+						<td class="limited-width">å…³é—­äº†TLSåŠ å¯†ï¼Œæ— è§†åŸŸåé˜»æ–­</td>
 						<td class="limited-width">${w\u0076\u006c\u0065\u0073\u0073ws}</td>
-						<td><button class="btn btn-primary" onclick="copyToClipboard('${w\u0076\u006c\u0065\u0073\u0073ws}')">µã»÷¸´ÖÆÁ´½Ó</button></td>
+						<td><button class="btn btn-primary" onclick="copyToClipboard('${w\u0076\u006c\u0065\u0073\u0073ws}')">ç‚¹å‡»å¤åˆ¶é“¾æ¥</button></td>
 					</tr>
 				</tbody>
 			</table>
-            <h5>¿Í»§¶Ë²ÎÊıÈçÏÂ£º</h5>
+            <h5>å®¢æˆ·ç«¯å‚æ•°å¦‚ä¸‹ï¼š</h5>
             <ul>
-                <li>¿Í»§¶ËµØÖ·(address)£º×Ô¶¨ÒåµÄÓòÃû »òÕß ÓÅÑ¡ÓòÃû »òÕß ÓÅÑ¡IP »òÕß ·´´úIP</li>
-                <li>¶Ë¿Ú(port)£º7¸öhttp¶Ë¿Ú¿ÉÈÎÒâÑ¡Ôñ(80¡¢8080¡¢8880¡¢2052¡¢2082¡¢2086¡¢2095)£¬»ò·´´úIP¶ÔÓ¦¶Ë¿Ú</li>
-                <li>ÓÃ»§ID(uuid)£º${userID}</li>
-                <li>´«ÊäĞ­Òé(network)£ºws »òÕß websocket</li>
-                <li>Î±×°ÓòÃû(host)£º${hostName}</li>
-                <li>Â·¾¶(path)£º/?ed=2560</li>
-		<li>´«Êä°²È«(TLS)£º¹Ø±Õ</li>
+                <li>å®¢æˆ·ç«¯åœ°å€(address)ï¼šè‡ªå®šä¹‰çš„åŸŸå æˆ–è€… ä¼˜é€‰åŸŸå æˆ–è€… ä¼˜é€‰IP æˆ–è€… åä»£IP</li>
+                <li>ç«¯å£(port)ï¼š7ä¸ªhttpç«¯å£å¯ä»»æ„é€‰æ‹©(80ã€8080ã€8880ã€2052ã€2082ã€2086ã€2095)ï¼Œæˆ–åä»£IPå¯¹åº”ç«¯å£</li>
+                <li>ç”¨æˆ·ID(uuid)ï¼š${userID}</li>
+                <li>ä¼ è¾“åè®®(network)ï¼šws æˆ–è€… websocket</li>
+                <li>ä¼ªè£…åŸŸå(host)ï¼š${hostName}</li>
+                <li>è·¯å¾„(path)ï¼š/?ed=2560</li>
+		<li>ä¼ è¾“å®‰å…¨(TLS)ï¼šå…³é—­</li>
             </ul>
             <hr>
 			<hr>
 			<hr>
             <br>
             <br>
-            <h3>2£ºCF-workers-\u0076\u006c\u0065\u0073\u0073+ws+tls½Úµã</h3>
+            <h3>2ï¼šCF-workers-\u0076\u006c\u0065\u0073\u0073+ws+tlsèŠ‚ç‚¹</h3>
 			<table class="table">
 				<thead>
 					<tr>
-						<th>½ÚµãÌØÉ«£º</th>
-						<th>µ¥½ÚµãÁ´½ÓÈçÏÂ£º</th>
+						<th>èŠ‚ç‚¹ç‰¹è‰²ï¼š</th>
+						<th>å•èŠ‚ç‚¹é“¾æ¥å¦‚ä¸‹ï¼š</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr>
-						<td class="limited-width">ÆôÓÃÁËTLS¼ÓÃÜ£¬<br>Èç¹û¿Í»§¶ËÖ§³Ö·ÖÆ¬(Fragment)¹¦ÄÜ£¬½¨Òé¿ªÆô£¬·ÀÖ¹ÓòÃû×è¶Ï</td>
+						<td class="limited-width">å¯ç”¨äº†TLSåŠ å¯†ï¼Œ<br>å¦‚æœå®¢æˆ·ç«¯æ”¯æŒåˆ†ç‰‡(Fragment)åŠŸèƒ½ï¼Œå»ºè®®å¼€å¯ï¼Œé˜²æ­¢åŸŸåé˜»æ–­</td>
 						<td class="limited-width">${p\u0076\u006c\u0065\u0073\u0073wstls}</td>	
-						<td><button class="btn btn-primary" onclick="copyToClipboard('${p\u0076\u006c\u0065\u0073\u0073wstls}')">µã»÷¸´ÖÆÁ´½Ó</button></td>
+						<td><button class="btn btn-primary" onclick="copyToClipboard('${p\u0076\u006c\u0065\u0073\u0073wstls}')">ç‚¹å‡»å¤åˆ¶é“¾æ¥</button></td>
 					</tr>
 				</tbody>
 			</table>
-            <h5>¿Í»§¶Ë²ÎÊıÈçÏÂ£º</h5>
+            <h5>å®¢æˆ·ç«¯å‚æ•°å¦‚ä¸‹ï¼š</h5>
             <ul>
-                <li>¿Í»§¶ËµØÖ·(address)£º×Ô¶¨ÒåµÄÓòÃû »òÕß ÓÅÑ¡ÓòÃû »òÕß ÓÅÑ¡IP »òÕß ·´´úIP</li>
-                <li>¶Ë¿Ú(port)£º6¸öhttps¶Ë¿Ú¿ÉÈÎÒâÑ¡Ôñ(443¡¢8443¡¢2053¡¢2083¡¢2087¡¢2096)£¬»ò·´´úIP¶ÔÓ¦¶Ë¿Ú</li>
-                <li>ÓÃ»§ID(uuid)£º${userID}</li>
-                <li>´«ÊäĞ­Òé(network)£ºws »òÕß websocket</li>
-                <li>Î±×°ÓòÃû(host)£º${hostName}</li>
-                <li>Â·¾¶(path)£º/?ed=2560</li>
-                <li>´«Êä°²È«(TLS)£º¿ªÆô</li>
-                <li>Ìø¹ıÖ¤ÊéÑéÖ¤(allowlnsecure)£ºfalse</li>
+                <li>å®¢æˆ·ç«¯åœ°å€(address)ï¼šè‡ªå®šä¹‰çš„åŸŸå æˆ–è€… ä¼˜é€‰åŸŸå æˆ–è€… ä¼˜é€‰IP æˆ–è€… åä»£IP</li>
+                <li>ç«¯å£(port)ï¼š6ä¸ªhttpsç«¯å£å¯ä»»æ„é€‰æ‹©(443ã€8443ã€2053ã€2083ã€2087ã€2096)ï¼Œæˆ–åä»£IPå¯¹åº”ç«¯å£</li>
+                <li>ç”¨æˆ·ID(uuid)ï¼š${userID}</li>
+                <li>ä¼ è¾“åè®®(network)ï¼šws æˆ–è€… websocket</li>
+                <li>ä¼ªè£…åŸŸå(host)ï¼š${hostName}</li>
+                <li>è·¯å¾„(path)ï¼š/?ed=2560</li>
+                <li>ä¼ è¾“å®‰å…¨(TLS)ï¼šå¼€å¯</li>
+                <li>è·³è¿‡è¯ä¹¦éªŒè¯(allowlnsecure)ï¼šfalse</li>
 			</ul>
 			<hr>
 			<hr>
 			<hr>
 			<br>	
 			<br>
-			<h3>3£º¾ÛºÏÍ¨ÓÃ¡¢Clash-meta¡¢Sing-box¶©ÔÄÁ´½ÓÈçÏÂ£º</h3>
+			<h3>3ï¼šèšåˆé€šç”¨ã€Clash-metaã€Sing-boxè®¢é˜…é“¾æ¥å¦‚ä¸‹ï¼š</h3>
 			<hr>
-			<p>×¢Òâ£º<br>1¡¢Ä¬ÈÏÃ¿¸ö¶©ÔÄÁ´½Ó°üº¬TLS+·ÇTLS¹²13¸ö¶Ë¿Ú½Úµã<br>2¡¢µ±Ç°workersÓòÃû×÷Îª¶©ÔÄÁ´½Ó£¬ĞèÍ¨¹ı´úÀí½øĞĞ¶©ÔÄ¸üĞÂ<br>3¡¢ÈçÊ¹ÓÃµÄ¿Í»§¶Ë²»Ö§³Ö·ÖÆ¬¹¦ÄÜ£¬ÔòTLS½Úµã²»¿ÉÓÃ</p>
+			<p>æ³¨æ„ï¼š<br>1ã€é»˜è®¤æ¯ä¸ªè®¢é˜…é“¾æ¥åŒ…å«TLS+éTLSå…±13ä¸ªç«¯å£èŠ‚ç‚¹<br>2ã€å½“å‰workersåŸŸåä½œä¸ºè®¢é˜…é“¾æ¥ï¼Œéœ€é€šè¿‡ä»£ç†è¿›è¡Œè®¢é˜…æ›´æ–°<br>3ã€å¦‚ä½¿ç”¨çš„å®¢æˆ·ç«¯ä¸æ”¯æŒåˆ†ç‰‡åŠŸèƒ½ï¼Œåˆ™TLSèŠ‚ç‚¹ä¸å¯ç”¨</p>
 			<hr>
 
 
 			<table class="table">
 					<thead>
 						<tr>
-							<th>¾ÛºÏÍ¨ÓÃ·ÖÏíÁ´½Ó (¿ÉÖ±½Óµ¼Èë¿Í»§¶Ë)£º</th>
+							<th>èšåˆé€šç”¨åˆ†äº«é“¾æ¥ (å¯ç›´æ¥å¯¼å…¥å®¢æˆ·ç«¯)ï¼š</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
-							<td><button class="btn btn-primary" onclick="copyToClipboard('${wk\u0076\u006c\u0065\u0073\u0073share}')">µã»÷¸´ÖÆÁ´½Ó</button></td>
+							<td><button class="btn btn-primary" onclick="copyToClipboard('${wk\u0076\u006c\u0065\u0073\u0073share}')">ç‚¹å‡»å¤åˆ¶é“¾æ¥</button></td>
 						</tr>
 					</tbody>
 				</table>
@@ -701,13 +701,13 @@ ${displayHtml}
 			<table class="table">
 					<thead>
 						<tr>
-							<th>¾ÛºÏÍ¨ÓÃ¶©ÔÄÁ´½Ó£º</th>
+							<th>èšåˆé€šç”¨è®¢é˜…é“¾æ¥ï¼š</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
 							<td class="limited-width">${ty}</td>	
-							<td><button class="btn btn-primary" onclick="copyToClipboard('${ty}')">µã»÷¸´ÖÆÁ´½Ó</button></td>
+							<td><button class="btn btn-primary" onclick="copyToClipboard('${ty}')">ç‚¹å‡»å¤åˆ¶é“¾æ¥</button></td>
 						</tr>
 					</tbody>
 				</table>	
@@ -715,13 +715,13 @@ ${displayHtml}
 				<table class="table">
 						<thead>
 							<tr>
-								<th>Clash-meta¶©ÔÄÁ´½Ó£º</th>
+								<th>Clash-metaè®¢é˜…é“¾æ¥ï¼š</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
 								<td class="limited-width">${cl}</td>	
-								<td><button class="btn btn-primary" onclick="copyToClipboard('${cl}')">µã»÷¸´ÖÆÁ´½Ó</button></td>
+								<td><button class="btn btn-primary" onclick="copyToClipboard('${cl}')">ç‚¹å‡»å¤åˆ¶é“¾æ¥</button></td>
 							</tr>
 						</tbody>
 					</table>
@@ -729,13 +729,13 @@ ${displayHtml}
 					<table class="table">
 					<thead>
 						<tr>
-							<th>Sing-box¶©ÔÄÁ´½Ó£º</th>
+							<th>Sing-boxè®¢é˜…é“¾æ¥ï¼š</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
 							<td class="limited-width">${sb}</td>	
-							<td><button class="btn btn-primary" onclick="copyToClipboard('${sb}')">µã»÷¸´ÖÆÁ´½Ó</button></td>
+							<td><button class="btn btn-primary" onclick="copyToClipboard('${sb}')">ç‚¹å‡»å¤åˆ¶é“¾æ¥</button></td>
 						</tr>
 					</tbody>
 				</table>
@@ -755,7 +755,7 @@ ${displayHtml}
 <div class="container">
     <div class="row">
         <div class="col-md-12">
-            <h1>Cloudflare-workers/pages-\u0076\u006c\u0065\u0073\u0073´úÀí½Å±¾ V25.5.27</h1>
+            <h1>Cloudflare-workers/pages-\u0076\u006c\u0065\u0073\u0073ä»£ç†è„šæœ¬ V25.5.27</h1>
 			<hr>
             <p>${noteshow}</p>
             <hr>
@@ -763,53 +763,53 @@ ${displayHtml}
 			<hr>
             <br>
             <br>
-            <h3>1£ºCF-pages/workers/×Ô¶¨ÒåÓò-\u0076\u006c\u0065\u0073\u0073+ws+tls½Úµã</h3>
+            <h3>1ï¼šCF-pages/workers/è‡ªå®šä¹‰åŸŸ-\u0076\u006c\u0065\u0073\u0073+ws+tlsèŠ‚ç‚¹</h3>
 			<table class="table">
 				<thead>
 					<tr>
-						<th>½ÚµãÌØÉ«£º</th>
-						<th>µ¥½ÚµãÁ´½ÓÈçÏÂ£º</th>
+						<th>èŠ‚ç‚¹ç‰¹è‰²ï¼š</th>
+						<th>å•èŠ‚ç‚¹é“¾æ¥å¦‚ä¸‹ï¼š</th>
 					</tr>
 				</thead>
 				<tbody>
 					<tr>
-						<td class="limited-width">ÆôÓÃÁËTLS¼ÓÃÜ£¬<br>Èç¹û¿Í»§¶ËÖ§³Ö·ÖÆ¬(Fragment)¹¦ÄÜ£¬¿É¿ªÆô£¬·ÀÖ¹ÓòÃû×è¶Ï</td>
+						<td class="limited-width">å¯ç”¨äº†TLSåŠ å¯†ï¼Œ<br>å¦‚æœå®¢æˆ·ç«¯æ”¯æŒåˆ†ç‰‡(Fragment)åŠŸèƒ½ï¼Œå¯å¼€å¯ï¼Œé˜²æ­¢åŸŸåé˜»æ–­</td>
 						<td class="limited-width">${p\u0076\u006c\u0065\u0073\u0073wstls}</td>
-						<td><button class="btn btn-primary" onclick="copyToClipboard('${p\u0076\u006c\u0065\u0073\u0073wstls}')">µã»÷¸´ÖÆÁ´½Ó</button></td>
+						<td><button class="btn btn-primary" onclick="copyToClipboard('${p\u0076\u006c\u0065\u0073\u0073wstls}')">ç‚¹å‡»å¤åˆ¶é“¾æ¥</button></td>
 					</tr>
 				</tbody>
 			</table>
-            <h5>¿Í»§¶Ë²ÎÊıÈçÏÂ£º</h5>
+            <h5>å®¢æˆ·ç«¯å‚æ•°å¦‚ä¸‹ï¼š</h5>
             <ul>
-                <li>¿Í»§¶ËµØÖ·(address)£º×Ô¶¨ÒåµÄÓòÃû »òÕß ÓÅÑ¡ÓòÃû »òÕß ÓÅÑ¡IP »òÕß ·´´úIP</li>
-                <li>¶Ë¿Ú(port)£º6¸öhttps¶Ë¿Ú¿ÉÈÎÒâÑ¡Ôñ(443¡¢8443¡¢2053¡¢2083¡¢2087¡¢2096)£¬»ò·´´úIP¶ÔÓ¦¶Ë¿Ú</li>
-                <li>ÓÃ»§ID(uuid)£º${userID}</li>
-                <li>´«ÊäĞ­Òé(network)£ºws »òÕß websocket</li>
-                <li>Î±×°ÓòÃû(host)£º${hostName}</li>
-                <li>Â·¾¶(path)£º/?ed=2560</li>
-                <li>´«Êä°²È«(TLS)£º¿ªÆô</li>
-                <li>Ìø¹ıÖ¤ÊéÑéÖ¤(allowlnsecure)£ºfalse</li>
+                <li>å®¢æˆ·ç«¯åœ°å€(address)ï¼šè‡ªå®šä¹‰çš„åŸŸå æˆ–è€… ä¼˜é€‰åŸŸå æˆ–è€… ä¼˜é€‰IP æˆ–è€… åä»£IP</li>
+                <li>ç«¯å£(port)ï¼š6ä¸ªhttpsç«¯å£å¯ä»»æ„é€‰æ‹©(443ã€8443ã€2053ã€2083ã€2087ã€2096)ï¼Œæˆ–åä»£IPå¯¹åº”ç«¯å£</li>
+                <li>ç”¨æˆ·ID(uuid)ï¼š${userID}</li>
+                <li>ä¼ è¾“åè®®(network)ï¼šws æˆ–è€… websocket</li>
+                <li>ä¼ªè£…åŸŸå(host)ï¼š${hostName}</li>
+                <li>è·¯å¾„(path)ï¼š/?ed=2560</li>
+                <li>ä¼ è¾“å®‰å…¨(TLS)ï¼šå¼€å¯</li>
+                <li>è·³è¿‡è¯ä¹¦éªŒè¯(allowlnsecure)ï¼šfalse</li>
 			</ul>
             <hr>
 			<hr>
 			<hr>
             <br>
             <br>
-			<h3>2£º¾ÛºÏÍ¨ÓÃ¡¢Clash-meta¡¢Sing-box¶©ÔÄÁ´½ÓÈçÏÂ£º</h3>
+			<h3>2ï¼šèšåˆé€šç”¨ã€Clash-metaã€Sing-boxè®¢é˜…é“¾æ¥å¦‚ä¸‹ï¼š</h3>
 			<hr>
-			<p>×¢Òâ£ºÒÔÏÂ¶©ÔÄÁ´½Ó½ö6¸öTLS¶Ë¿Ú½Úµã</p>
+			<p>æ³¨æ„ï¼šä»¥ä¸‹è®¢é˜…é“¾æ¥ä»…6ä¸ªTLSç«¯å£èŠ‚ç‚¹</p>
 			<hr>
 
 
 			<table class="table">
 					<thead>
 						<tr>
-							<th>¾ÛºÏÍ¨ÓÃ·ÖÏíÁ´½Ó (¿ÉÖ±½Óµ¼Èë¿Í»§¶Ë)£º</th>
+							<th>èšåˆé€šç”¨åˆ†äº«é“¾æ¥ (å¯ç›´æ¥å¯¼å…¥å®¢æˆ·ç«¯)ï¼š</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
-							<td><button class="btn btn-primary" onclick="copyToClipboard('${pg\u0076\u006c\u0065\u0073\u0073share}')">µã»÷¸´ÖÆÁ´½Ó</button></td>
+							<td><button class="btn btn-primary" onclick="copyToClipboard('${pg\u0076\u006c\u0065\u0073\u0073share}')">ç‚¹å‡»å¤åˆ¶é“¾æ¥</button></td>
 						</tr>
 					</tbody>
 				</table>
@@ -819,13 +819,13 @@ ${displayHtml}
 			<table class="table">
 					<thead>
 						<tr>
-							<th>¾ÛºÏÍ¨ÓÃ¶©ÔÄÁ´½Ó£º</th>
+							<th>èšåˆé€šç”¨è®¢é˜…é“¾æ¥ï¼š</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
 							<td class="limited-width">${pty}</td>	
-							<td><button class="btn btn-primary" onclick="copyToClipboard('${pty}')">µã»÷¸´ÖÆÁ´½Ó</button></td>
+							<td><button class="btn btn-primary" onclick="copyToClipboard('${pty}')">ç‚¹å‡»å¤åˆ¶é“¾æ¥</button></td>
 						</tr>
 					</tbody>
 				</table>	
@@ -833,13 +833,13 @@ ${displayHtml}
 				<table class="table">
 						<thead>
 							<tr>
-								<th>Clash-meta¶©ÔÄÁ´½Ó£º</th>
+								<th>Clash-metaè®¢é˜…é“¾æ¥ï¼š</th>
 							</tr>
 						</thead>
 						<tbody>
 							<tr>
 								<td class="limited-width">${pcl}</td>	
-								<td><button class="btn btn-primary" onclick="copyToClipboard('${pcl}')">µã»÷¸´ÖÆÁ´½Ó</button></td>
+								<td><button class="btn btn-primary" onclick="copyToClipboard('${pcl}')">ç‚¹å‡»å¤åˆ¶é“¾æ¥</button></td>
 							</tr>
 						</tbody>
 					</table>
@@ -847,13 +847,13 @@ ${displayHtml}
 					<table class="table">
 					<thead>
 						<tr>
-							<th>Sing-box¶©ÔÄÁ´½Ó£º</th>
+							<th>Sing-boxè®¢é˜…é“¾æ¥ï¼š</th>
 						</tr>
 					</thead>
 					<tbody>
 						<tr>
 							<td class="limited-width">${psb}</td>	
-							<td><button class="btn btn-primary" onclick="copyToClipboard('${psb}')">µã»÷¸´ÖÆÁ´½Ó</button></td>
+							<td><button class="btn btn-primary" onclick="copyToClipboard('${psb}')">ç‚¹å‡»å¤åˆ¶é“¾æ¥</button></td>
 						</tr>
 					</tbody>
 				</table>
@@ -1080,7 +1080,7 @@ proxies:
       Host: ${hostName}
 
 proxy-groups:
-- name: ¸ºÔØ¾ùºâ
+- name: è´Ÿè½½å‡è¡¡
   type: load-balance
   url: http://www.gstatic.com/generate_204
   interval: 300
@@ -1099,7 +1099,7 @@ proxy-groups:
     - CF_V12_${IP12}_${PT12}
     - CF_V13_${IP13}_${PT13}
 
-- name: ×Ô¶¯Ñ¡Ôñ
+- name: è‡ªåŠ¨é€‰æ‹©
   type: url-test
   url: http://www.gstatic.com/generate_204
   interval: 300
@@ -1119,11 +1119,11 @@ proxy-groups:
     - CF_V12_${IP12}_${PT12}
     - CF_V13_${IP13}_${PT13}
 
-- name: ??Ñ¡Ôñ´úÀí
+- name: ??é€‰æ‹©ä»£ç†
   type: select
   proxies:
-    - ¸ºÔØ¾ùºâ
-    - ×Ô¶¯Ñ¡Ôñ
+    - è´Ÿè½½å‡è¡¡
+    - è‡ªåŠ¨é€‰æ‹©
     - DIRECT
     - CF_V1_${IP1}_${PT1}
     - CF_V2_${IP2}_${PT2}
@@ -1142,7 +1142,7 @@ proxy-groups:
 rules:
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
-  - MATCH,??Ñ¡Ôñ´úÀí`
+  - MATCH,??é€‰æ‹©ä»£ç†`
 }
 	
 function getsbConfig(userID, hostName) {
@@ -1763,7 +1763,7 @@ proxies:
       Host: ${hostName}
 
 proxy-groups:
-- name: ¸ºÔØ¾ùºâ
+- name: è´Ÿè½½å‡è¡¡
   type: load-balance
   url: http://www.gstatic.com/generate_204
   interval: 300
@@ -1775,7 +1775,7 @@ proxy-groups:
     - CF_V12_${IP12}_${PT12}
     - CF_V13_${IP13}_${PT13}
 
-- name: ×Ô¶¯Ñ¡Ôñ
+- name: è‡ªåŠ¨é€‰æ‹©
   type: url-test
   url: http://www.gstatic.com/generate_204
   interval: 300
@@ -1788,11 +1788,11 @@ proxy-groups:
     - CF_V12_${IP12}_${PT12}
     - CF_V13_${IP13}_${PT13}
 
-- name: ??Ñ¡Ôñ´úÀí
+- name: ??é€‰æ‹©ä»£ç†
   type: select
   proxies:
-    - ¸ºÔØ¾ùºâ
-    - ×Ô¶¯Ñ¡Ôñ
+    - è´Ÿè½½å‡è¡¡
+    - è‡ªåŠ¨é€‰æ‹©
     - DIRECT
     - CF_V8_${IP8}_${PT8}
     - CF_V9_${IP9}_${PT9}
@@ -1804,7 +1804,7 @@ proxy-groups:
 rules:
   - GEOIP,LAN,DIRECT
   - GEOIP,CN,DIRECT
-  - MATCH,??Ñ¡Ôñ´úÀí`
+  - MATCH,??é€‰æ‹©ä»£ç†`
 }
 		
 function getpsbConfig(userID, hostName) {
